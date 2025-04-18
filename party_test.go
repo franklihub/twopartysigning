@@ -341,3 +341,52 @@ func Test_part(t *testing.T) {
 	}
 	fmt.Println("signPub:", common.Bytes2Hex(signPub))
 }
+func Test_mpc(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		partya := NewPartyA()
+		partyb := NewPartyB()
+		/////
+		Qa, Ra := partya.ZKProof()
+		c := partyb.RecvCommit(Qa, Ra)
+		s := partya.Challange(c, partyb.Qb, partyb.Rb)
+		if !partyb.Verify(s) {
+			panic("verify fail")
+		}
+		////
+		alpha, _ := partyb.PaillierChanllenge(&partya.paillierKey.PublicKey, partya.ckey)
+		response := partya.PaillierResponse(alpha)
+		if !partyb.PaillierVerify(response) {
+			panic("verify fail")
+		}
+		////
+		msg := "hello world"
+		hash := crypto.Keccak256Hash([]byte(msg))
+		signaturepartial := partyb.SignaturePartial(hash.Bytes())
+		// fmt.Println("signaturepartial:", signaturepartial.String())
+		signature := partya.Sign(signaturepartial, hash.Bytes())
+		// fmt.Println("signature:", signature)
+		////r s v
+		// fmt.Println("R:", partya.R.Print())
+		// fmt.Println("R:", new(big.Int).Mod(partyb.R.GetX().GetNum(), secp256k1.GetSecp256k1().GetN()).Text(16))
+		///5cb78d0f81e513b3b2fa9a3882b75166dab95d935a2361a9857387242485ddfc
+		// f4948a12cf30daae703ab9b0857aaa9c1a84f353907e33f2c6740b09af90b598
+		// 01
+		// fmt.Println("signr:", common.Bytes2Hex(signature[0:32]))
+		// fmt.Println("signs:", common.Bytes2Hex(signature[32:64]))
+
+		// pubkey := ecdsa.PublicKey{
+		// 	Curve: crypto.S256(),
+		// 	X:     partya.Qpub.GetX().GetNum(),
+		// 	Y:     partya.Qpub.GetY().GetNum(),
+		// }
+		// fmt.Println("pub:", common.Bytes2Hex(crypto.FromECDSAPub(&pubkey)))
+		signPub, err := crypto.Ecrecover(hash.Bytes(), signature)
+		if err != nil {
+			panic(err)
+		}
+		if common.Bytes2Hex(signPub) != "045ae6d14d4934eeb004b818d687a1ea6efff0946d043dfb9338c0601a1ae0387fd00bfcefeff11961a48edc66f62ad87feed8a9ef157efa294c91466c70039bbe" {
+			fmt.Println("i:", i)
+			panic("signPub error")
+		}
+	}
+}

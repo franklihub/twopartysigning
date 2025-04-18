@@ -114,8 +114,8 @@ func (p *PartyA) Sign(signaturepartial *big.Int, mhash []byte) []byte {
 		sdc,
 		secp256k1.GetSecp256k1().GetN(),
 	)
-	fmt.Println("sdc:", sdc.Text(16))
-	fmt.Println("dc:", dc.Text(16))
+	// fmt.Println("sdc:", sdc.Text(16))
+	// fmt.Println("dc:", dc.Text(16))
 	///
 	k1_inv := new(big.Int).ModInverse(p.r, secp256k1.GetSecp256k1().GetN())
 	//ss = k1_inv * signaturepartial mod q
@@ -123,7 +123,7 @@ func (p *PartyA) Sign(signaturepartial *big.Int, mhash []byte) []byte {
 		new(big.Int).Mul(k1_inv, dc),
 		secp256k1.GetSecp256k1().GetN(),
 	)
-	fmt.Println("signs:", s.Text(16))
+	// fmt.Println("signs:", s.Text(16))
 	signs := s
 	// subs := new(big.Int).Sub(secp256k1.GetSecp256k1().GetN(), s)
 	// fmt.Println("signssubs:", subs.Text(16))
